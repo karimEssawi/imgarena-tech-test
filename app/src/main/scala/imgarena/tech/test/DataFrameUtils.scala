@@ -4,9 +4,6 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{StructType, DataType}
 
-/**
- * Various Spark utilities and extensions of DataFrame
- */
 object DataFrameUtils {
 
   private def dropSubColumn(col: Column, colType: DataType, fullColName: String, dropColName: String): Option[Column] = {

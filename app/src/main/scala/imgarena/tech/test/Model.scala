@@ -6,9 +6,9 @@ case class Eventpayload (
                           details: Option[Details],
                           eventElementType: Option[String],
                           faultType: Option[String],
-                          matchStatus: Option[Matchstatus],
+                          matchStatus: Option[MatchStatus],
                           matchTime: Option[String],
-                          nextServer: Option[Nextserver],
+                          nextServer: Option[NextServer],
                           numOverrules: Option[Long],
                           playerId: Option[Long],
                           reason: Option[String],
@@ -27,25 +27,25 @@ case class Details (
                    )
 
 
-case class Matchstatus (
+case class MatchStatus(
 
-                         courtNum: Option[Long],
-                         firstServer: Option[String],
-                         matchState: Option[Matchstate],
-                         numSets: Option[Long],
-                         scoringType: Option[String],
-                         teamAPlayer1: Option[String],
-                         teamAPlayersDetails: Option[Teamaplayersdetails],
-                         teamBPlayer1: Option[String],
-                         teamBPlayersDetails: Option[Teambplayersdetails],
-                         tieBreakType: Option[String],
-                         tossChooser: Option[String],
-                         tossWinner: Option[String],
-                         umpire: Option[String],
-                         umpireCode: Option[String],
-                         umpireCountry: Option[String]
+                        courtNum: Option[Long],
+                        firstServer: Option[String],
+                        matchState: Option[MatchState],
+                        numSets: Option[Long],
+                        scoringType: Option[String],
+                        teamAPlayer1: Option[String],
+                        teamAPlayersDetails: Option[TeamAPlayersDetails],
+                        teamBPlayer1: Option[String],
+                        teamBPlayersDetails: Option[TeamBPlayersDetails],
+                        tieBreakType: Option[String],
+                        tossChooser: Option[String],
+                        tossWinner: Option[String],
+                        umpire: Option[String],
+                        umpireCode: Option[String],
+                        umpireCountry: Option[String]
                        )
-case class Matchstate (
+case class MatchState(
 
                         challengeEnded: Option[String],
                         evaluationStarted: Option[String],
@@ -60,21 +60,21 @@ case class Matchstate (
                       )
 
 
-case class Teamaplayersdetails (
+case class TeamAPlayersDetails(
 
                                  player1Country: Option[String],
                                  player1Id: Option[String]
                                )
 
 
-case class Teambplayersdetails (
+case class TeamBPlayersDetails(
 
                                  player1Country: Option[String],
                                  player1Id: Option[String]
                                )
 
 
-case class Nextserver (
+case class NextServer(
 
                         team: Option[String]
                       )
@@ -82,13 +82,13 @@ case class Nextserver (
 
 case class Score (
 
-                   currentGameScore: Option[Currentgamescore],
-                   currentGmatch_elementameScore: Option[Currentgmatch_elementamescore],
+                   currentGameScore: Option[CurrentGameScore],
+                   currentGmatch_elementameScore: Option[CurrentGmatch_elementameScore],
                    currentSetScore: Option[Currentsetscore],
                    overallSetScore: Option[Overallsetscore],
                    previousSetsScore: Seq[Previoussetsscore]
                  )
-case class Currentgamescore (
+case class CurrentGameScore(
 
                               gameType: Option[String],
                               pointsA: Option[String],
@@ -96,7 +96,7 @@ case class Currentgamescore (
                             )
 
 
-case class Currentgmatch_elementamescore (
+case class CurrentGmatch_elementameScore(
 
                                            gameType: Option[String],
                                            pointsA: Option[String],

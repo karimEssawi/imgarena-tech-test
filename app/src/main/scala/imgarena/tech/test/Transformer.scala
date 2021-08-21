@@ -2,20 +2,21 @@ package imgarena.tech.test
 
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
 import imgarena.tech.test.DataFrameUtils._
+import org.apache.spark.sql.types._
 
 class Transformer(spark: SparkSession) {
   import spark.implicits._
 
-  def flatten(df: DataFrame): DataFrame = {
+  def flatten(df: DataFrame): Dataset[PointFlow] = {
     val window = Window.partitionBy("match_id").orderBy("message_id")
 
     df.withColumn("pre_serve_state", lag("eventPayload", 1).over(window))
       .withColumn("post_serve_state", lead("eventPayload", 1).over(window))
       //      .withColumn("serveId", row_number().over(window))
       .filter($"eventPayload.eventElementType" === "PointStarted")
-            .filter($"match_id".isin(Seq("29304", "30941"):_*))
+//            .filter($"match_id".isin(Seq("29304", "30941"):_*))
       .withColumn("state_before_serve",
         struct(
           $"eventPayload.server.team" as "server",
@@ -29,15 +30,16 @@ class Transformer(spark: SparkSession) {
           when(
             $"post_serve_state.eventElementType" === "PointScored"
               && $"post_serve_state.details.scoredBy" === "TeamA", 1
-          ).otherwise(0) as "Team A scored",
+          ).otherwise(0) as "team_a_scored",
           when(
             $"post_serve_state.eventElementType" === "PointScored"
               && $"post_serve_state.details.scoredBy" === "TeamB", 1
-          ).otherwise(0) as "Team B scored",
+          ).otherwise(0) as "team_b_scored",
         )
       )
       .select(
-        $"match_id",
+        $"match_id" cast LongType,
+        $"message_id" cast LongType,
         $"state_before_serve",
 //        $"serveId",
         $"serve_outcome",
@@ -45,6 +47,8 @@ class Transformer(spark: SparkSession) {
         $"post_serve_state.eventElementType" as "post_serve_event",
 //        $"eventPayload",
       )
+      .sort($"match_id", $"message_id")
+      .as[PointFlow]
   }
 
   def enrichServeData(df: DataFrame): DataFrame =

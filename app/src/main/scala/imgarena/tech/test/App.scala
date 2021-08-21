@@ -31,7 +31,7 @@ object App {
 //    flattenedDf.show(false)
 
     println("============== Enriching dataframe with serve info ==================")
-    val enrichedDf = transformer.enrichServeData(flattenedDf)
+    val enrichedDf = transformer.enrichServeData(flattenedDf.toDF())
 //    enrichedDf.show(false)
 
     println("============== Filling missing overall set scores for PointScored events ==================")

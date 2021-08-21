@@ -88,8 +88,8 @@ class Transformer(spark: SparkSession) {
       .withColumn("score", struct($"score.*", $"overallSetScore"))
       .drop("overallSetScore")
       .select(
-        $"match_id",
-        $"message_id",
+//        $"match_id",
+//        $"message_id",
         $"score",
         $"seqNum",
         $"server",
@@ -99,5 +99,6 @@ class Transformer(spark: SparkSession) {
         $"nextServer",
         $"eventElementType"
       )
+//      .as[PointScored]
   }
 }

@@ -19,106 +19,20 @@ object App {
     val sourceDf = dataIO.readCSV(this.getClass.getResource("/keystrokes-for-tech-test.csv").getPath)
 
     val jsonSchema = dataIO.inferJsonSchema(sourceDf, schemaIndex = 3)
-//    val pointScoredJsonSchema = dataIO.inferJsonSchema(sourceDf.filter($"match_element.eventElementType" === "PointScored"), schemaIndex = 3)
 
 //    pointScoredJsonSchema.printTreeString()
 //      sparkSession.read.json(sourceDf.map(r => r.getString(3))).schema
 
-    val dfWithSchema = sourceDf.withColumn("eventPayload", from_json($"match_element", jsonSchema))
+    val dfWithSchema = sourceDf.withColumn("eventPayload", from_json($"match_element", jsonSchema)).persist()
 
-    println("============== Flattening and pivoting source dataframe ==================")
+    println("============== Flattening and enriching source dataframe ==================")
     val flattenedDf = transformer.flatten(dfWithSchema)
 //    flattenedDf.show(false)
-
-    println("============== Enriching dataframe with serve info ==================")
-//    val enrichedDf = transformer.enrichServeData(flattenedDf)
-//    enrichedDf.show(false)
 
     println("============== Filling missing overall set scores for PointScored events ==================")
     val overallSetScoreDf = transformer.calcOverallSetScore(dfWithSchema)
     overallSetScoreDf.printSchema()
     overallSetScoreDf.show(false)
-
-//    val window = Window.partitionBy("match_id").orderBy("message_id")
-//
-//    dfWithSchema
-//      .withColumn("pre_serve_state", lag("eventPayload", 1).over(window))
-//      .withColumn("post_serve_state", lead("eventPayload", 1).over(window))
-//      .withColumn("serveId", row_number().over(window))
-//      .filter($"eventPayload.eventElementType" === "PointStarted")
-////      .filter($"match_id".isin(Seq("29304", "30941"):_*))
-//      .withColumn("state_before_serve",
-//        struct(
-//          $"eventPayload.server.team" as "server",
-//          when($"pre_serve_state.eventElementType" === "PhysioCalled", 1).otherwise(0) as "physio",
-//        )
-//      )
-//      .withColumn("serve_outcome",
-//        struct(
-//          when($"post_serve_state.eventElementType" === "PointLet", 1).otherwise(0) as "let",
-//          when($"post_serve_state.eventElementType" === "PointFault", 1).otherwise(0) as "fault",
-//          when(
-//            $"post_serve_state.eventElementType" === "PointScored"
-//            && $"post_serve_state.details.scoredBy" === "TeamA", 1
-//          ).otherwise(0) as "Team A scored",
-//          when(
-//            $"post_serve_state.eventElementType" === "PointScored"
-//            && $"post_serve_state.details.scoredBy" === "TeamB", 1
-//          ).otherwise(0) as "Team B scored",
-//        )
-//      )
-//      .withColumn("serveAttempt",
-//        when($"pre_serve_state.eventElementType" === "PointFault", "second").otherwise("first")
-//      )
-//      .select(
-//        $"match_id",
-//        $"state_before_serve",
-//        $"serveAttempt",
-//        $"serveId",
-//        $"serve_outcome",
-//        $"pre_serve_state.eventElementType" as "pre_serve_event",
-//        $"post_serve_state.eventElementType" as "post_serve_event",
-//        $"eventPayload",
-//      )
-//
-//    val dfWithSchema2 = dfWithSchema
-//      .filter($"eventPayload.eventElementType" === "PointScored")
-//      .filter(size($"eventPayload.score.previousSetsScore") > 0)
-//      .select($"eventPayload.*")
-////      .as[Eventpayload]
-//      .withColumn("overallSetScore",
-//        transform($"score.previousSetsScore", c => {
-//          val delta = c("gamesA") - c("gamesB")
-//          struct(
-//            when(delta > 0, 1).otherwise(0) as "setA",
-//            when(delta < 0, 1).otherwise(0) as "setB"
-//          )
-//        })
-//      )
-//      .withColumn("overallSetScore",
-//        aggregate($"overallSetScore", struct(lit(0) as "setA",lit(0) as "setB"), (acc, v) => {
-//          struct(
-//            acc("setA") + v("setA") as "setsA",
-//            acc("setB") + v("setB") as "setsB",
-//          )
-//        })
-//      )
-//      .dropNestedColumn("score.overallSetScore")
-//      .withColumn("score", struct($"score.*", $"overallSetScore"))
-//      .drop("overallSetScore")
-//
-////    dfWithSchema2.printSchema()
-////    dfWithSchema2.show(false)
-//
-////      println(SchemaToCaseClass.schema2Cc(dfWithSchema2.schema, "Mu"))
-//    dfWithSchema2.show(100,false)
-//    dfWithSchema2.printSchema()
-
-//    dfWithSchema.select($"eventPayload").show(100,false)
-
-//    val schema = df.select($"match_element")
-//    schema.printTreeString()
-//    df.withColumn("eventType", $"match_element").printSchema()
   }
 
   def greeting(): String = "Hello, world!"

@@ -14,7 +14,7 @@ class DataIO(spark: SparkSession) {
       .csv(path)
 
   def inferJsonSchema(df: DataFrame, schemaIndex: Int): StructType =
-    spark.read.json(df.map(r => r.getString(schemaIndex))).schema
+    spark.read.json(df.map(_.getString(schemaIndex))).schema
 
   def write(df: DataFrame, path: String): Unit = {
     df.coalesce(1)

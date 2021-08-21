@@ -1,6 +1,7 @@
 package imgarena.tech.test
 
 import com.github.mrpowers.spark.fast.tests.DatasetComparer
+import org.apache.spark.sql.Row
 import org.apache.spark.sql.functions.{from_json, struct}
 import org.junit.runner.RunWith
 import org.scalatest.funspec.AnyFunSpec
@@ -17,20 +18,43 @@ class TransformerSpec extends AnyFunSpec with TestUtil with DatasetComparer {
     val schema = spark.read.json(sourceDf.map(r => r.getString(3))).schema
     val sourceDfWithSchema = sourceDf.withColumn("eventPayload", from_json($"match_element", schema))
 
-    it("should flatten and encode source data") {
+    it("should flatten, encode, and enrich source data") {
       val actualDF = transformer.flatten(sourceDfWithSchema)
 
 //      actualDF.show(false)
 //      actualDF.printSchema
 
       val expectedDF = Seq(
-        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0), "MatchStatusUpdate", "PointLet"),
-        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), "PointLet", "PointScored"),
-        PointFlow(383269, 355, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0), "PointScored", "PointFault"),
-        PointFlow(383269, 358, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), "PhysioCalled", "PointScored")
+        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0),"first", "MatchStatusUpdate", "PointLet"),
+        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PointLet", "PointScored"),
+        PointFlow(383269, 355, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0),"first", "PointScored", "PointFault"),
+        PointFlow(383269, 358, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PhysioCalled", "PointScored")
       ).toDS()
 
       assertSmallDatasetEquality(actualDF, expectedDF, ignoreNullable = true)
+    }
+
+    it("should calculate missing overall set score") {
+      val actualDF = transformer.calcOverallSetScore(sourceDfWithSchema)
+
+            actualDF.show(false)
+            actualDF.printSchema
+
+      actualDF
+        .coalesce(1)
+        .write
+        .option("header", "true")
+        .mode("overwrite")
+        .csv(getClass.getResource("/keystrokes-test-result.csv").getPath)
+//      val expectedDF = Seq(
+//        Row(struct(),2,)
+//        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0),"first", "MatchStatusUpdate", "PointLet"),
+//        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PointLet", "PointScored"),
+//        PointFlow(383269, 355, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0),"first", "PointScored", "PointFault"),
+//        PointFlow(383269, 358, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PhysioCalled", "PointScored")
+//      ).toDF()
+
+//      assertSmallDatasetEquality(actualDF, expectedDF, ignoreNullable = true)
     }
 
   }

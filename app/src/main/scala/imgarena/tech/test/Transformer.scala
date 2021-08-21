@@ -37,24 +37,27 @@ class Transformer(spark: SparkSession) {
           ).otherwise(0) as "team_b_scored",
         )
       )
+      .transform(enrichServeData)
       .select(
         $"match_id" cast LongType,
         $"message_id" cast LongType,
         $"state_before_serve",
 //        $"serveId",
         $"serve_outcome",
+        $"serve_attempt",
         $"pre_serve_state.eventElementType" as "pre_serve_event",
         $"post_serve_state.eventElementType" as "post_serve_event",
+//        lit(null) as "serve_attempt",
 //        $"eventPayload",
       )
       .sort($"match_id", $"message_id")
       .as[PointFlow]
   }
 
-  def enrichServeData(df: DataFrame): DataFrame =
+  private def enrichServeData(df: DataFrame): DataFrame =
     df
-      .withColumn("serveAttempt",
-        when($"pre_serve_event" === "PointFault", "second").otherwise("first")
+      .withColumn("serve_attempt",
+        when($"pre_serve_state.eventElementType" === "PointFault", "second").otherwise("first")
       )
 
   def calcOverallSetScore(df: DataFrame): DataFrame = {
@@ -85,6 +88,8 @@ class Transformer(spark: SparkSession) {
       .withColumn("score", struct($"score.*", $"overallSetScore"))
       .drop("overallSetScore")
       .select(
+        $"match_id",
+        $"message_id",
         $"score",
         $"seqNum",
         $"server",

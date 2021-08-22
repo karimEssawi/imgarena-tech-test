@@ -7,8 +7,8 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.functions._
 
 
-object App {
-  def main(args: Array[String]): Unit = {
+object App extends App {
+  def run(sourceDataPath: String, resultsRootPath: String): Unit = {
     val sparkSession = SparkSession.builder().config("spark.master", "local[*]").getOrCreate()
     sparkSession.sparkContext.setLogLevel("WARN")
 
@@ -16,7 +16,7 @@ object App {
     val dataIO = new DataIO(sparkSession)
     val transformer = new Transformer(sparkSession)
 
-    val sourceDf = dataIO.readCSV(this.getClass.getResource("/keystrokes-for-tech-test.csv").getPath)
+    val sourceDf = dataIO.readCSV(sourceDataPath)
 
     val jsonSchema = dataIO.inferJsonSchema(sourceDf, schemaIndex = 3)
 
@@ -27,13 +27,14 @@ object App {
 
     println("============== Flattening and enriching source dataframe ==================")
     val flattenedDf = transformer.flatten(dfWithSchema)
-//    flattenedDf.show(false)
+    dataIO.write(flattenedDf, s"$resultsRootPath/match-data-flattened-and-enriched")
+    //    flattenedDf.show(false)
 
     println("============== Filling missing overall set scores for PointScored events ==================")
     val overallSetScoreDf = transformer.calcOverallSetScore(dfWithSchema)
-    overallSetScoreDf.printSchema()
-    overallSetScoreDf.show(false)
-  }
+    dataIO.write(overallSetScoreDf, s"$resultsRootPath/points-scored-with-overall-score-sets-filled")
 
+  }
+  run(this.getClass.getResource("/keystrokes-for-tech-test.csv").getPath, "spark_output/")
   def greeting(): String = "Hello, world!"
 }

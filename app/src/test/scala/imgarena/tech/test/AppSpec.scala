@@ -27,10 +27,10 @@ class AppSpec extends AnyFunSpec with TestUtil with DatasetComparer with TableDr
       )
 
       val expectedFlattenedDF = Seq(
-        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0),"first", "MatchStatusUpdate", "PointLet"),
-        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PointLet", "PointScored"),
-        PointFlow(383269, 355, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0),"first", "PointScored", "PointFault"),
-        PointFlow(383269, 358, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PhysioCalled", "PointScored")
+        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0), serve_attempt = "first", "MatchStatusUpdate", "PointLet"),
+        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), serve_attempt = "first", "PointLet", "PointScored"),
+        PointFlow(383269, 356, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0), serve_attempt = "first", "PhysioCalled", "PointFault"),
+        PointFlow(383269, 359, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), serve_attempt = "second", "PointFault", "PointScored")
       ).toDF()
 
       val expectedOverallSetScoreDF = Seq(
@@ -46,7 +46,7 @@ class AppSpec extends AnyFunSpec with TestUtil with DatasetComparer with TableDr
 
       forAll(comparableDfs) { (actualDFPath: String, expectedDF: DataFrame) =>
         val actualDF = spark.read
-          .option("header", true)
+          .option("header", "true")
           .schema(expectedDF.schema)
           .json(s"$tempDirPath/$actualDFPath")
 

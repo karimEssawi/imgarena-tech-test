@@ -12,11 +12,11 @@ object DataFrameUtils {
     } else {
       colType match {
         case colType: StructType =>
-          if (dropColName.startsWith(s"${fullColName}.")) {
+          if (dropColName.startsWith(s"$fullColName.")) {
             Some(struct(
               colType.fields
                 .flatMap(f =>
-                  dropSubColumn(col.getField(f.name), f.dataType, s"${fullColName}.${f.name}", dropColName) match {
+                  dropSubColumn(col.getField(f.name), f.dataType, s"$fullColName.${f.name}", dropColName) match {
                     case Some(x) => Some(x.alias(f.name))
                     case None => None
                   })
@@ -24,7 +24,7 @@ object DataFrameUtils {
           } else {
             Some(col)
           }
-        case other => Some(col)
+        case _ => Some(col)
       }
     }
   }

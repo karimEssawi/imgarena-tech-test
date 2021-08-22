@@ -14,9 +14,7 @@ class Transformer(spark: SparkSession) {
 
     df.withColumn("pre_serve_state", lag("eventPayload", 1).over(window))
       .withColumn("post_serve_state", lead("eventPayload", 1).over(window))
-      //      .withColumn("serveId", row_number().over(window))
       .filter($"eventPayload.eventElementType" === "PointStarted")
-//            .filter($"match_id".isin(Seq("29304", "30941"):_*))
       .withColumn("state_before_serve",
         struct(
           $"eventPayload.server.team" as "server",
@@ -42,13 +40,10 @@ class Transformer(spark: SparkSession) {
         $"match_id" cast LongType,
         $"message_id" cast LongType,
         $"state_before_serve",
-//        $"serveId",
         $"serve_outcome",
         $"serve_attempt",
         $"pre_serve_state.eventElementType" as "pre_serve_event",
         $"post_serve_state.eventElementType" as "post_serve_event",
-//        lit(null) as "serve_attempt",
-//        $"eventPayload",
       )
       .sort($"match_id", $"message_id")
       .as[PointFlow]
@@ -63,9 +58,7 @@ class Transformer(spark: SparkSession) {
   def calcOverallSetScore(df: DataFrame): DataFrame = {
     df
       .filter($"eventPayload.eventElementType" === "PointScored")
-//      .filter(size($"eventPayload.score.previousSetsScore") > 0)
       .select($"eventPayload.*")
-      //      .as[Eventpayload]
       .withColumn("overallSetScore",
         transform($"score.previousSetsScore", c => {
           val delta = c("gamesA") - c("gamesB")
@@ -88,8 +81,6 @@ class Transformer(spark: SparkSession) {
       .withColumn("score", struct($"score.*", $"overallSetScore"))
       .drop("overallSetScore")
       .select(
-//        $"match_id",
-//        $"message_id",
         $"score",
         $"seqNum",
         $"server",
@@ -99,6 +90,5 @@ class Transformer(spark: SparkSession) {
         $"nextServer",
         $"eventElementType"
       )
-//      .as[PointScored]
   }
 }

@@ -13,7 +13,7 @@ class TransformerSpec extends AnyFunSpec with TestUtil with DatasetComparer {
 
   describe("Transformer") {
     val transformer = new Transformer(spark)
-    val sourceDf = spark.read.option("header", true).csv(getClass.getResource("/keystrokes-test-data.csv").getPath)
+    val sourceDf = spark.read.option("header", "true").csv(getClass.getResource("/keystrokes-test-data.csv").getPath)
     val schema = spark.read.json(sourceDf.map(r => r.getString(3))).schema
     val sourceDfWithSchema = sourceDf.withColumn("eventPayload", from_json($"match_element", schema))
 
@@ -21,10 +21,10 @@ class TransformerSpec extends AnyFunSpec with TestUtil with DatasetComparer {
       val actualDF = transformer.flatten(sourceDfWithSchema)
 
       val expectedDF = Seq(
-        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0),"first", "MatchStatusUpdate", "PointLet"),
-        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PointLet", "PointScored"),
-        PointFlow(383269, 355, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0),"first", "PointScored", "PointFault"),
-        PointFlow(383269, 358, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0),"first", "PhysioCalled", "PointScored")
+        PointFlow(383269, 343, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 1, fault = 0, team_a_scored = 0, team_b_scored = 0), serve_attempt = "first", "MatchStatusUpdate", "PointLet"),
+        PointFlow(383269, 345, StateBeforeServe(server = "TeamA", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), serve_attempt = "first", "PointLet", "PointScored"),
+        PointFlow(383269, 356, StateBeforeServe(server = "TeamB", physio = 1), ServeOutcome(let = 0, fault = 1, team_a_scored = 0, team_b_scored = 0), serve_attempt = "first", "PhysioCalled", "PointFault"),
+        PointFlow(383269, 359, StateBeforeServe(server = "TeamB", physio = 0), ServeOutcome(let = 0, fault = 0, team_a_scored = 1, team_b_scored = 0), serve_attempt = "second", "PointFault", "PointScored")
       ).toDS()
 
       assertSmallDatasetEquality(actualDF, expectedDF, ignoreNullable = true)

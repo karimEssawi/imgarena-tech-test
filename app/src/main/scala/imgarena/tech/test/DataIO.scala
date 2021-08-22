@@ -9,8 +9,7 @@ class DataIO(spark: SparkSession) {
   def readCSV(path: String): DataFrame =
     spark
       .read
-      .option("header", true)
-//      .option("mergeSchema", true)
+      .option("header", "true")
       .csv(path)
 
   def inferJsonSchema(df: DataFrame, schemaIndex: Int): StructType =
